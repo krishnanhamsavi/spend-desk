@@ -28,6 +28,20 @@ evaluation:
   validation_start: "2025-09-16"
   holdout_start: "2026-03-16"
 
+budget:
+  # ASSUMPTION: the FY27 plan was set on plan_date from each team's trailing run rate,
+  # grown quarter over quarter at the planned rates below. It knows nothing that happened later.
+  plan_date: "2026-01-31"
+  base_window_days: 90
+  fiscal_year: 27
+  quarterly_growth:
+    Data Platform: 0.06
+    ML Training: 0.06
+    Product Analytics: 0.05
+    Finance BI: 0.03
+    GTM Ops: 0.03
+    Customer Data: 0.06
+
 anomaly:
   # Placeholders. Tuned on the validation window in Phase 4.
   robust_z_threshold: 3.5

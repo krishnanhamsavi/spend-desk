@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import yaml
@@ -38,6 +38,24 @@ class Config:
         months_in = (d.month - start) % 12
         fy = d.year + 1 if d.month >= start else d.year
         return f"Q{months_in // 3 + 1} FY{fy % 100:02d}"
+
+    def fiscal_quarters(self, fy: int) -> list[tuple[str, date, date, int]]:
+        """(label, first day, last day, index 1 to 4) for fiscal year fy, e.g. 27 for FY27."""
+        start_month = self.fiscal_year_start_month
+        year = 2000 + fy - (1 if start_month > 1 else 0)
+        out = []
+        for i in range(4):
+            m = start_month + 3 * i
+            first = date(year + (m - 1) // 12, (m - 1) % 12 + 1, 1)
+            m_next = m + 3
+            nxt = date(year + (m_next - 1) // 12, (m_next - 1) % 12 + 1, 1)
+            out.append((f"Q{i + 1} FY{fy:02d}", first, nxt - timedelta(days=1), i + 1))
+        return out
+
+    def quarter_of(self, d: date) -> tuple[str, date, date, int]:
+        label = self.fiscal_quarter(d)
+        fy = int(label[-2:])
+        return next(q for q in self.fiscal_quarters(fy) if q[0] == label)
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:

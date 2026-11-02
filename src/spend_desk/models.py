@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
 
 from spend_desk.config import ROOT, Config, load_config
@@ -20,10 +21,26 @@ LAYERS = ("core", "mart")
 
 def template_vars(cfg: Config) -> dict[str, str]:
     teams = ", ".join(f"('{t.upper().replace(' ', '_')}', '{t}')" for t in cfg.teams)
+    budget = cfg.raw["budget"]
+    plan_date = date.fromisoformat(budget["plan_date"])
+    quarters = ", ".join(
+        f"('{label}', '{first}', '{last}', {idx}, {(last - first).days + 1})"
+        for label, first, last, idx in cfg.fiscal_quarters(budget["fiscal_year"])
+    )
+    growth = ", ".join(f"('{t}', {g})" for t, g in budget["quarterly_growth"].items())
+    current = cfg.quarter_of(cfg.as_of)
     return {
         "dollars_per_credit": repr(float(cfg.dollars_per_credit)),
         "query_sample_rate": repr(float(cfg.raw["data"]["query_sample_rate"])),
         "team_values": teams,
+        "plan_date": str(plan_date),
+        "base_start": str(plan_date - timedelta(days=budget["base_window_days"] - 1)),
+        "fiscal_quarters": quarters,
+        "budget_growth": growth,
+        "as_of": str(cfg.as_of),
+        "current_quarter": current[0],
+        "quarter_start": str(current[1]),
+        "quarter_end": str(current[2]),
     }
 
 

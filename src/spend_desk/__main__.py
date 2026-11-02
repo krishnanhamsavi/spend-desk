@@ -4,9 +4,19 @@ import sys
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="spend_desk")
-    parser.add_argument("command", choices=["bootstrap", "data", "load", "build", "eval", "deploy"])
+    parser.add_argument(
+        "command", choices=["bootstrap", "data", "load", "build", "forecast", "eval", "deploy"]
+    )
     parser.add_argument("--target", choices=["duckdb", "snowflake"], default="duckdb")
+    parser.add_argument(
+        "--snowflake-ml", action="store_true", help="train SNOWFLAKE.ML.FORECAST (uses credits)"
+    )
     args = parser.parse_args(argv)
+
+    if args.command == "forecast":
+        from spend_desk.forecast import main as run_forecast
+
+        return run_forecast(args.target, args.snowflake_ml)
 
     if args.command == "build":
         from spend_desk.models import main as build_models
