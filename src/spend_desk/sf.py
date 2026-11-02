@@ -44,3 +44,41 @@ def run_bootstrap() -> None:
             for r in rows:
                 print("   ", r[:4])
     con.close()
+
+
+def load_raw() -> None:
+    """Load the generated Parquet files into SPEND_DESK.RAW, replacing existing tables."""
+    import time
+
+    import pandas as pd
+    from snowflake.connector.pandas_tools import write_pandas
+
+    raw_dir = ROOT / "data" / "raw"
+    files = sorted(raw_dir.glob("*.parquet"))
+    if not files:
+        raise SystemExit("No Parquet files in data/raw. Run `python -m spend_desk data` first.")
+    con = connect()
+    cur = con.cursor()
+    cur.execute("USE SCHEMA SPEND_DESK.RAW")
+    try:
+        for f in files:
+            t = time.time()
+            df = pd.read_parquet(f)
+            table = f.stem.upper()
+            ok, _, nrows, _ = write_pandas(
+                con, df, table, auto_create_table=True, overwrite=True, use_logical_type=True
+            )
+            print(f"RAW.{table:28s} {nrows:>10,} rows  {time.time() - t:5.1f}s  ok={ok}")
+    finally:
+        suspend(cur)
+        con.close()
+
+
+def suspend(cur) -> None:
+    """Suspend the project warehouse now instead of waiting for AUTO_SUSPEND."""
+    from snowflake.connector.errors import ProgrammingError
+
+    try:
+        cur.execute("ALTER WAREHOUSE SPEND_DESK_WH SUSPEND")
+    except ProgrammingError:
+        pass  # already suspended

@@ -1,10 +1,13 @@
 # Each target wraps the Python CLI, so `python -m spend_desk <cmd>` works without make.
 PY ?= python
 
-.PHONY: data test lint eval deploy
+.PHONY: data load test lint eval deploy
 
 data:
 	$(PY) -m spend_desk data
+
+load:
+	$(PY) -m spend_desk load
 
 test:
 	$(PY) -m pytest -q
