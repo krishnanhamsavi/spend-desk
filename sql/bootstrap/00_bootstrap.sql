@@ -1,8 +1,8 @@
 -- Spend Desk bootstrap. Run once as ACCOUNTADMIN.
 -- Creates the project role, a capped XSMALL warehouse, and the database layout.
+-- {{SNOWFLAKE_USER}} is filled with the quoted CURRENT_USER() by `python -m spend_desk bootstrap`.
 
 USE ROLE ACCOUNTADMIN;
-SET dev_user = CURRENT_USER();
 
 -- 1. Resource monitor. Hard cap on trial spend, reset monthly.
 CREATE RESOURCE MONITOR IF NOT EXISTS SPEND_DESK_RM
@@ -29,7 +29,7 @@ ALTER WAREHOUSE SPEND_DESK_WH SET RESOURCE_MONITOR = SPEND_DESK_RM;
 -- 3. Project role, granted to the developer user.
 CREATE ROLE IF NOT EXISTS SPEND_DESK_ROLE;
 GRANT ROLE SPEND_DESK_ROLE TO ROLE SYSADMIN;
-GRANT ROLE SPEND_DESK_ROLE TO USER IDENTIFIER($dev_user);
+GRANT ROLE SPEND_DESK_ROLE TO USER {{SNOWFLAKE_USER}};
 GRANT USAGE, OPERATE ON WAREHOUSE SPEND_DESK_WH TO ROLE SPEND_DESK_ROLE;
 
 -- Cortex AI functions (used from Phase 6 onward).

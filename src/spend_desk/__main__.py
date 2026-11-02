@@ -4,8 +4,15 @@ import sys
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="spend_desk")
-    parser.add_argument("command", choices=["data", "eval", "deploy"])
+    parser.add_argument("command", choices=["bootstrap", "data", "eval", "deploy"])
     args = parser.parse_args(argv)
+
+    if args.command == "bootstrap":
+        from spend_desk.sf import run_bootstrap
+
+        run_bootstrap()
+        return 0
+
     print(f"'{args.command}' is not built yet.", file=sys.stderr)
     return 1
 

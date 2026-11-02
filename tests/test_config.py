@@ -23,3 +23,14 @@ def test_fiscal_quarter_feb_start():
     assert cfg.fiscal_quarter(date(2026, 9, 15)) == "Q3 FY27"
     assert cfg.fiscal_quarter(date(2027, 1, 31)) == "Q4 FY27"
     assert cfg.fiscal_quarter(date(2026, 1, 31)) == "Q4 FY26"
+
+
+def test_bootstrap_script_parses():
+    from spend_desk.config import ROOT
+    from spend_desk.sf import split_statements
+
+    sql = (ROOT / "sql" / "bootstrap" / "00_bootstrap.sql").read_text(encoding="utf-8")
+    stmts = split_statements(sql)
+    assert any("AUTO_SUSPEND = 60" in s for s in stmts)
+    assert any("CREDIT_QUOTA = 25" in s for s in stmts)
+    assert all("{{" not in s or "TO USER" in s for s in stmts)
