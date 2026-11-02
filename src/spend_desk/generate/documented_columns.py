@@ -137,9 +137,27 @@ TAG_REFERENCES = {
     "APPLY_METHOD",
 }
 
+# SHOW WAREHOUSES output columns (subset Spend Desk uses), plus SNAPSHOT_TIME which records
+# when the snapshot was taken. SHOW output is lowercase; tables store uppercase.
+WAREHOUSES_SNAPSHOT = {
+    "NAME",
+    "STATE",
+    "TYPE",
+    "SIZE",
+    "MIN_CLUSTER_COUNT",
+    "MAX_CLUSTER_COUNT",
+    "SCALING_POLICY",
+    "AUTO_SUSPEND",
+    "AUTO_RESUME",
+    "OWNER",
+    "COMMENT",
+    "SNAPSHOT_TIME",
+}
+
 DOCUMENTED = {
     "WAREHOUSE_METERING_HISTORY": WAREHOUSE_METERING_HISTORY,
     "QUERY_HISTORY": QUERY_HISTORY,
     "WAREHOUSE_EVENTS_HISTORY": WAREHOUSE_EVENTS_HISTORY,
     "TAG_REFERENCES": TAG_REFERENCES,
+    "WAREHOUSES_SNAPSHOT": WAREHOUSES_SNAPSHOT,
 }

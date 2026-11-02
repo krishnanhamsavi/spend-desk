@@ -28,6 +28,7 @@ def generate(cfg: Config) -> dict[str, pd.DataFrame]:
         "QUERY_HISTORY": tables.query_history(whs, sims, cal, cfg),
         "WAREHOUSE_EVENTS_HISTORY": tables.warehouse_events(whs, sims, cal, seed, resize_users),
         "TAG_REFERENCES": tables.tag_references(whs),
+        "WAREHOUSES_SNAPSHOT": tables.warehouses_snapshot(whs, sims, cal),
         "GROUND_TRUTH": gt,
         "GROUND_TRUTH_DAILY": gt_daily,
     }

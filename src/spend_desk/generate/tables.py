@@ -343,3 +343,25 @@ def ground_truth(
             }
         )
     return pd.DataFrame(rows), pd.concat(daily, ignore_index=True)
+
+
+def warehouses_snapshot(
+    whs: list[Warehouse], sims: dict[str, SimResult], cal: Calendar
+) -> pd.DataFrame:
+    """Warehouse settings on the as-of date, shaped like SHOW WAREHOUSES output."""
+    return pd.DataFrame(
+        {
+            "NAME": [w.name for w in whs],
+            "STATE": "SUSPENDED",
+            "TYPE": "STANDARD",
+            "SIZE": [SIZES[sims[w.name].size_idx[-1]] for w in whs],
+            "MIN_CLUSTER_COUNT": 1,
+            "MAX_CLUSTER_COUNT": [w.max_clusters for w in whs],
+            "SCALING_POLICY": "STANDARD",
+            "AUTO_SUSPEND": [w.auto_suspend for w in whs],
+            "AUTO_RESUME": "true",
+            "OWNER": [w.role_name for w in whs],
+            "COMMENT": [f"Cost center {TEAM_SLUG[w.team]}" for w in whs],
+            "SNAPSHOT_TIME": cal.ts[-1] + HOUR,
+        }
+    )

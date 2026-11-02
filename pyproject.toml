@@ -42,3 +42,4 @@ select = ["E", "F", "I", "B", "UP"]
 # Catalog and scenario hold literal SQL text and descriptions that read better unwrapped.
 "src/spend_desk/generate/catalog.py" = ["E501"]
 "src/spend_desk/generate/scenario.py" = ["E501"]
+"src/spend_desk/recommend.py" = ["E501"]
