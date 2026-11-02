@@ -1,0 +1,43 @@
+# Spend Desk assumptions. Every value here is an assumption, not a measured fact.
+
+pricing:
+  # ASSUMPTION: list price per credit. Real rates vary by edition, region and contract.
+  dollars_per_credit: 3.00
+
+calendar:
+  # Fiscal year starts Feb 1 (FY27 = Feb 2026 to Jan 2027).
+  fiscal_year_start_month: 2
+  history_start: "2025-03-16"
+  # As-of date for the QBR. Mid Q3 FY27, so quarter to date and projected quarter end are both meaningful.
+  as_of: "2026-09-15"
+
+data:
+  seed: 42
+  n_warehouses: 25
+  # Fraction of queries kept in the synthetic QUERY_HISTORY sample.
+  query_sample_rate: 0.02
+
+forecast:
+  horizon_days: 90
+  backtest_folds: 6
+  backtest_step_days: 14
+  interval_level: 0.80
+
+anomaly:
+  # Placeholders. Tuned on the validation window in Phase 4.
+  robust_z_threshold: 3.5
+  min_dollar_impact: 50
+  level_shift_confirm_days: 7
+
+teams:
+  - Data Platform
+  - ML Training
+  - Product Analytics
+  - Finance BI
+  - GTM Ops
+  - Customer Data
+
+snowflake:
+  database: SPEND_DESK
+  warehouse: SPEND_DESK_WH
+  role: SPEND_DESK_ROLE
