@@ -4,8 +4,14 @@ import sys
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="spend_desk")
-    parser.add_argument("command", choices=["bootstrap", "data", "load", "eval", "deploy"])
+    parser.add_argument("command", choices=["bootstrap", "data", "load", "build", "eval", "deploy"])
+    parser.add_argument("--target", choices=["duckdb", "snowflake"], default="duckdb")
     args = parser.parse_args(argv)
+
+    if args.command == "build":
+        from spend_desk.models import main as build_models
+
+        return build_models(args.target)
 
     if args.command == "bootstrap":
         from spend_desk.sf import run_bootstrap

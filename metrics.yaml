@@ -1,0 +1,157 @@
+# Governed metric definitions. Each metric is defined once here and computed once in sql/models.
+# The app, the agent, and the QBR memo read definitions from this file and never restate a formula.
+# All data is synthetic and shaped like SNOWFLAKE.ACCOUNT_USAGE.
+
+defaults:
+  owner: Finance BI, Product Finance
+  dollars_note: Dollars are credits times dollars_per_credit from config.yaml. That rate is an assumption, not a contract price.
+
+metrics:
+  credits_used:
+    label: Credits used
+    unit: credits
+    grain: [hour x warehouse, day x warehouse, day x team]
+    source: core.fct_warehouse_hourly, mart.daily_spend, mart.daily_team_spend
+    formula: CREDITS_USED from WAREHOUSE_METERING_HISTORY, summed. Equals compute credits plus cloud services credits.
+    caveats:
+      - Cloud services are included gross. The account is billed for them only above 10 percent of daily compute. See cloud_services_billable_credits.
+
+  dollars:
+    label: Spend (assumed dollars)
+    unit: USD
+    grain: [day x warehouse x service type, day x team]
+    source: mart.daily_spend, mart.daily_team_spend
+    formula: credits_used x dollars_per_credit
+    caveats:
+      - dollars_per_credit is an assumption (default 3.00). Always show it next to dollar figures.
+      - Gross of the cloud services adjustment, so it slightly overstates the invoice.
+
+  compute_credits:
+    label: Compute credits
+    unit: credits
+    grain: [hour x warehouse, day x warehouse, day x team]
+    source: core.fct_warehouse_hourly
+    formula: CREDITS_USED_COMPUTE, summed.
+    caveats:
+      - Includes idle time while the warehouse was running with no query executing.
+
+  cloud_services_credits:
+    label: Cloud services credits
+    unit: credits
+    grain: [hour x warehouse, day x warehouse, day x team]
+    source: core.fct_warehouse_hourly
+    formula: CREDITS_USED_CLOUD_SERVICES, summed.
+    caveats:
+      - Gross. See cloud_services_billable_credits for the billed amount.
+
+  cloud_services_ratio:
+    label: Cloud services ratio
+    unit: ratio
+    grain: [day x warehouse]
+    source: mart.daily_warehouse_efficiency
+    formula: sum(cloud_services_credits) / sum(compute_credits). Aggregate numerator and denominator before dividing, never average daily ratios.
+    caveats:
+      - Above 0.10 at account level the excess is billed. A warehouse ratio above 0.10 is a signal, not a bill.
+
+  cloud_services_billable_credits:
+    label: Billable cloud services credits
+    unit: credits
+    grain: [day x account]
+    source: mart.cloud_services_billing_daily
+    formula: max(0, cloud_services_credits minus 0.10 x compute_credits), per day, across the account.
+    caveats:
+      - The adjustment applies at account level per day, so it cannot be split exactly by team.
+
+  idle_credits:
+    label: Idle credits
+    unit: credits
+    grain: [hour x warehouse, day x warehouse, day x team]
+    source: core.fct_warehouse_hourly
+    formula: max(0, CREDITS_USED_COMPUTE minus CREDITS_ATTRIBUTED_COMPUTE_QUERIES)
+    caveats:
+      - Includes the 60 second minimum billed on every resume, which no setting can remove.
+      - Includes short gaps between queries, which AUTO_SUSPEND cannot remove when it is already 60 seconds.
+      - CREDITS_ATTRIBUTED_COMPUTE_QUERIES is null for adaptive warehouses, so idle is not defined there.
+
+  idle_share:
+    label: Idle share
+    unit: ratio
+    grain: [day x warehouse]
+    source: mart.daily_warehouse_efficiency
+    formula: sum(idle_credits) / sum(compute_credits)
+    caveats:
+      - A high idle share on a warehouse that is already at AUTO_SUSPEND = 60 points to query scheduling, not settings.
+
+  min_billing_floor_credits:
+    label: Minimum billing floor
+    unit: credits
+    grain: [hour x warehouse]
+    source: core.fct_warehouse_hourly
+    formula: min(resumes x 60 seconds x credits per hour of the current size, idle_credits). Resumes come from RESUME_WAREHOUSE events.
+    caveats:
+      - An upper bound. Part of each 60 second minimum may overlap query execution.
+
+  idle_excl_min_billing_credits:
+    label: Idle beyond minimum billing
+    unit: credits
+    grain: [hour x warehouse, day x warehouse]
+    source: core.fct_warehouse_hourly
+    formula: idle_credits minus min_billing_floor_credits
+    caveats:
+      - Not all of this is recoverable. Lowering AUTO_SUSPEND only removes idle tails longer than the new setting. The recommender estimates the recoverable part from query arrival rates.
+
+  queued_time_share:
+    label: Queued time share
+    unit: ratio
+    grain: [day x warehouse]
+    source: mart.daily_warehouse_efficiency
+    formula: sum(QUEUED_OVERLOAD_TIME) / sum(TOTAL_ELAPSED_TIME) over sampled queries.
+    caveats:
+      - Based on the QUERY_HISTORY sample. Provisioning queue time is excluded because it reflects resumes, not load.
+
+  remote_spill_query_share:
+    label: Queries spilling to remote storage
+    unit: ratio
+    grain: [day x warehouse]
+    source: mart.daily_warehouse_efficiency
+    formula: share of sampled queries with BYTES_SPILLED_TO_REMOTE_STORAGE above zero.
+    caveats:
+      - Remote spill is the strongest sign a warehouse is too small for its workload.
+
+  avg_scan_ratio:
+    label: Partition scan ratio
+    unit: ratio
+    grain: [day x warehouse, month x query pattern x warehouse]
+    source: mart.daily_warehouse_efficiency, mart.query_pattern_cost_monthly
+    formula: average of PARTITIONS_SCANNED / PARTITIONS_TOTAL over sampled queries.
+    caveats:
+      - A ratio near 1 on a large table usually means pruning failed. Full scans of small tables are normal.
+
+  est_queries:
+    label: Estimated query count
+    unit: queries
+    grain: [day x warehouse, month x query pattern x warehouse]
+    source: mart.daily_warehouse_efficiency, mart.query_pattern_cost_monthly
+    formula: sampled query count / query_sample_rate
+    caveats:
+      - QUERY_HISTORY is a uniform 10 percent sample, so small counts are noisy.
+
+  attributed_credits:
+    label: Query pattern compute
+    unit: credits
+    grain: [month x query pattern x warehouse]
+    source: mart.query_pattern_cost_monthly
+    formula: Each warehouse hour's CREDITS_ATTRIBUTED_COMPUTE_QUERIES is split across the sampled queries that started in that hour, by execution time, then summed by QUERY_PARAMETERIZED_HASH.
+    caveats:
+      - Execution compute only. Idle time belongs to the warehouse, not to a pattern.
+      - A query that runs across an hour boundary is charged to the hour it started.
+      - Hours with attributed credits but no sampled query are not charged to any pattern.
+
+  credits_per_query:
+    label: Credits per query
+    unit: credits
+    grain: [month x query pattern x warehouse]
+    source: mart.query_pattern_cost_monthly
+    formula: attributed_credits / est_queries
+    caveats:
+      - Use with est_queries. A cheap query run thousands of times can cost more than an expensive one.

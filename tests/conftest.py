@@ -5,12 +5,19 @@ from spend_desk.generate.build import DUCKDB_PATH
 
 
 @pytest.fixture(scope="session")
-def raw_db():
-    """Local DuckDB mirror. Generated on first use if `make data` has not been run."""
+def db():
+    """Local DuckDB mirror with RAW, CORE, and MART built.
+
+    Generates RAW on first use if `make data` has not been run, then rebuilds the models so
+    tests always see the current SQL.
+    """
     if not DUCKDB_PATH.exists():
         from spend_desk.generate.build import main
 
         main()
-    con = duckdb.connect(str(DUCKDB_PATH), read_only=True)
+    from spend_desk.models import Target, build
+
+    con = duckdb.connect(str(DUCKDB_PATH))
+    build(Target("duckdb", con), verbose=False)
     yield con
     con.close()

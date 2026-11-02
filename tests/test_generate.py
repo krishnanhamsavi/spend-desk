@@ -69,13 +69,13 @@ def test_planted_truth_meets_the_brief(world):
 
 
 @pytest.mark.parametrize("table", sorted(DOCUMENTED))
-def test_raw_columns_are_documented(raw_db, table):
-    cols = {r[0] for r in raw_db.execute(f"DESCRIBE RAW.{table}").fetchall()}
+def test_raw_columns_are_documented(db, table):
+    cols = {r[0] for r in db.execute(f"DESCRIBE RAW.{table}").fetchall()}
     assert cols <= DOCUMENTED[table], cols - DOCUMENTED[table]
 
 
-def test_metering_invariants(raw_db):
-    bad = raw_db.execute("""
+def test_metering_invariants(db):
+    bad = db.execute("""
         SELECT
           COUNT(*) FILTER (WHERE CREDITS_USED < 0 OR CREDITS_USED_COMPUTE < 0
                            OR CREDITS_USED_CLOUD_SERVICES < 0),
@@ -85,14 +85,14 @@ def test_metering_invariants(raw_db):
                                  > CREDITS_USED_COMPUTE + 1e-6)
         FROM RAW.WAREHOUSE_METERING_HISTORY""").fetchone()
     assert bad == (0, 0, 0)
-    dupes = raw_db.execute("""
+    dupes = db.execute("""
         SELECT COUNT(*) FROM (SELECT WAREHOUSE_ID, START_TIME FROM RAW.WAREHOUSE_METERING_HISTORY
                               GROUP BY ALL HAVING COUNT(*) > 1)""").fetchone()[0]
     assert dupes == 0
 
 
-def test_every_warehouse_is_tagged(raw_db):
-    untagged = raw_db.execute("""
+def test_every_warehouse_is_tagged(db):
+    untagged = db.execute("""
         SELECT COUNT(DISTINCT m.WAREHOUSE_NAME) FROM RAW.WAREHOUSE_METERING_HISTORY m
         LEFT JOIN RAW.TAG_REFERENCES t ON t.OBJECT_NAME = m.WAREHOUSE_NAME
              AND t.DOMAIN = 'WAREHOUSE' AND t.TAG_NAME = 'COST_CENTER'
@@ -100,8 +100,8 @@ def test_every_warehouse_is_tagged(raw_db):
     assert untagged == 0
 
 
-def test_ground_truth_patterns_appear_in_query_history(raw_db):
-    missing = raw_db.execute("""
+def test_ground_truth_patterns_appear_in_query_history(db):
+    missing = db.execute("""
         SELECT g.TRUTH_ID FROM RAW.GROUND_TRUTH g
         WHERE g.QUERY_PARAMETERIZED_HASH IS NOT NULL
           AND NOT EXISTS (SELECT 1 FROM RAW.QUERY_HISTORY q
@@ -110,8 +110,8 @@ def test_ground_truth_patterns_appear_in_query_history(raw_db):
     assert missing == []
 
 
-def test_unused_outputs_are_never_read(raw_db):
-    reads = raw_db.execute("""
+def test_unused_outputs_are_never_read(db):
+    reads = db.execute("""
         SELECT COUNT(*) FROM RAW.QUERY_HISTORY
         WHERE QUERY_TYPE = 'SELECT'
           AND (QUERY_TEXT ILIKE '%LEGACY_GL_DAILY%' OR QUERY_TEXT ILIKE '%CRM_ACCOUNTS_SNAP%')
