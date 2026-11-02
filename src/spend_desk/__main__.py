@@ -5,7 +5,8 @@ import sys
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="spend_desk")
     parser.add_argument(
-        "command", choices=["bootstrap", "data", "load", "build", "forecast", "eval", "deploy"]
+        "command",
+        choices=["bootstrap", "data", "load", "build", "forecast", "anomaly", "eval", "deploy"],
     )
     parser.add_argument("--target", choices=["duckdb", "snowflake"], default="duckdb")
     parser.add_argument(
@@ -13,6 +14,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    if args.command == "anomaly":
+        from spend_desk.anomaly import main as run_anomaly
+
+        return run_anomaly(args.target, args.snowflake_ml)
     if args.command == "forecast":
         from spend_desk.forecast import main as run_forecast
 

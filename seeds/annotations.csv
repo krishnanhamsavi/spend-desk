@@ -1,0 +1,6 @@
+team,start_date,confirmed_on,kind,owner,note
+Customer Data,2025-06-02,2025-06-09,expected_change,VROSSI,New CDP source onboarded. Sync volume up by plan.
+ML Training,2025-07-14,2025-07-21,expected_change,GLIN,Second scoring model launched.
+Product Analytics,2025-08-04,2025-08-11,expected_change,KADEYEMI,Executive dashboard suite went live.
+ML Training,2026-02-02,2026-02-09,expected_change,GLIN,Recommendation model added to the nightly training run.
+Customer Data,2026-06-01,2026-06-08,expected_change,VROSSI,Real time profile sync launched for all product lines.

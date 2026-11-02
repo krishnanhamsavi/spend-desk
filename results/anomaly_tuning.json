@@ -1,0 +1,12 @@
+{
+  "robust_z": {
+    "z": 6.0,
+    "min_dollars": 25.0,
+    "ref_weeks": 4,
+    "lookback_weeks": 26,
+    "mad_window": 120,
+    "warmup_days": 56,
+    "shift_z": 4.0,
+    "shift_min_pct": 0.15
+  }
+}

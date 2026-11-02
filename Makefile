@@ -1,7 +1,7 @@
 # Each target wraps the Python CLI, so `python -m spend_desk <cmd>` works without make.
 PY ?= python
 
-.PHONY: data load build build-sf forecast forecast-sf test lint eval deploy
+.PHONY: data load build build-sf forecast forecast-sf anomaly anomaly-sf test lint eval deploy
 
 data:
 	$(PY) -m spend_desk data
@@ -21,6 +21,13 @@ forecast:
 # Retrains SNOWFLAKE.ML.FORECAST 7 times (about 0.5 credits) and refreshes results/.
 forecast-sf:
 	$(PY) -m spend_desk forecast --target snowflake --snowflake-ml
+
+anomaly:
+	$(PY) -m spend_desk anomaly --target duckdb
+
+# Retrains SNOWFLAKE.ML.ANOMALY_DETECTION 6 times (about 0.15 credits) and refreshes results/.
+anomaly-sf:
+	$(PY) -m spend_desk anomaly --target snowflake --snowflake-ml
 
 test:
 	$(PY) -m pytest -q
