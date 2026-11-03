@@ -1,7 +1,7 @@
 # Each target wraps the Python CLI, so `python -m spend_desk <cmd>` works without make.
 PY ?= python
 
-.PHONY: data load build build-sf forecast forecast-sf anomaly anomaly-sf recommend test lint eval deploy
+.PHONY: data load build build-sf forecast forecast-sf anomaly anomaly-sf recommend agent-eval sync test lint eval deploy
 
 data:
 	$(PY) -m spend_desk data
@@ -31,6 +31,13 @@ anomaly-sf:
 
 recommend:
 	$(PY) -m spend_desk recommend --target duckdb
+
+# Calls the Anthropic API (about $1.50 per run). Not part of `make eval`.
+agent-eval:
+	$(PY) -m spend_desk agent-eval
+
+sync:
+	$(PY) -m spend_desk sync
 
 test:
 	$(PY) -m pytest -q

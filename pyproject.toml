@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3", "ruff>=0.7"]
+docs = ["playwright>=1.48"]
 
 [build-system]
 requires = ["setuptools>=69"]

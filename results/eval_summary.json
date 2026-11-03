@@ -1,0 +1,132 @@
+{
+  "as_of": "2026-09-15",
+  "data_quality_checks": {
+    "total": 7,
+    "passing": 7
+  },
+  "forecast": {
+    "total": {
+      "model": "snowflake_ml",
+      "mape": 0.0546,
+      "baseline_mape": 0.083,
+      "coverage_80": 0.828
+    },
+    "teams_beating_baseline": 6.0,
+    "teams": 6,
+    "mean_team_mape": 0.1343,
+    "mean_team_baseline_mape": 0.164,
+    "by_team": {
+      "All teams": {
+        "model": "snowflake_ml",
+        "mape": 0.0546,
+        "baseline_mape": 0.083,
+        "coverage_80": 0.828
+      },
+      "Customer Data": {
+        "model": "ets",
+        "mape": 0.305,
+        "baseline_mape": 0.3178,
+        "coverage_80": 0.469
+      },
+      "Data Platform": {
+        "model": "snowflake_ml",
+        "mape": 0.06,
+        "baseline_mape": 0.0652,
+        "coverage_80": 0.861
+      },
+      "Finance BI": {
+        "model": "snowflake_ml",
+        "mape": 0.1576,
+        "baseline_mape": 0.2286,
+        "coverage_80": 0.891
+      },
+      "GTM Ops": {
+        "model": "ets",
+        "mape": 0.1088,
+        "baseline_mape": 0.1289,
+        "coverage_80": 0.833
+      },
+      "ML Training": {
+        "model": "snowflake_ml",
+        "mape": 0.1254,
+        "baseline_mape": 0.1746,
+        "coverage_80": 0.781
+      },
+      "Product Analytics": {
+        "model": "ets",
+        "mape": 0.0491,
+        "baseline_mape": 0.0689,
+        "coverage_80": 0.976
+      }
+    }
+  },
+  "anomaly": {
+    "robust_z_validation": {
+      "precision": 1.0,
+      "recall": 0.857,
+      "detected": 6,
+      "truths": 7,
+      "false_positive_episodes": 0,
+      "median_days_to_detect": 0.0,
+      "threshold": 6.0,
+      "min_dollars": 25.0
+    },
+    "robust_z_holdout": {
+      "precision": 0.8,
+      "recall": 0.714,
+      "detected": 5,
+      "truths": 7,
+      "false_positive_episodes": 1,
+      "median_days_to_detect": 0.0,
+      "threshold": 6.0,
+      "min_dollars": 25.0
+    },
+    "snowflake_ml_validation": {
+      "precision": 1.0,
+      "recall": 0.571,
+      "detected": 4,
+      "truths": 7,
+      "false_positive_episodes": 0,
+      "median_days_to_detect": 0.5,
+      "threshold": 0.95,
+      "min_dollars": 200.0
+    },
+    "snowflake_ml_holdout": {
+      "precision": 0.6,
+      "recall": 0.429,
+      "detected": 3,
+      "truths": 7,
+      "false_positive_episodes": 2,
+      "median_days_to_detect": 0.0,
+      "threshold": 0.95,
+      "min_dollars": 200.0
+    }
+  },
+  "recommender": {
+    "planted_waste": 11,
+    "found": 11,
+    "share_found": 1.0,
+    "recommendations": 11,
+    "false_recommendations": 0,
+    "planted_savings_monthly": 11099.68,
+    "planted_savings_found_monthly": 11099.68,
+    "estimated_savings_expected_monthly": 11510.98988813836,
+    "estimated_savings_conservative_monthly": 7917.741653020783,
+    "estimate_to_planted_ratio": 1.03705601315879,
+    "median_abs_pct_error_per_item": 0.4149487070564413,
+    "upsize_recommendations": 2,
+    "upsize_worst_case_monthly_cost": 9066.261916222295
+  },
+  "agent": {
+    "questions": 15,
+    "answer_accuracy": 0.9333333333333333,
+    "provenance_pass_rate": 1.0,
+    "first_draft_provenance_pass_rate": 0.6666666666666666,
+    "numbers_checked": 286,
+    "model": "claude-opus-5-5",
+    "input_tokens": 205989,
+    "output_tokens": 25296,
+    "est_cost_usd": 1.33
+  },
+  "tests": 52
+}

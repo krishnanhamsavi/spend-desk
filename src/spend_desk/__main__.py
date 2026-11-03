@@ -14,16 +14,51 @@ def main(argv: list[str] | None = None) -> int:
             "forecast",
             "anomaly",
             "recommend",
+            "agent-eval",
+            "ask",
             "eval",
             "deploy",
+            "sync",
         ],
     )
     parser.add_argument("--target", choices=["duckdb", "snowflake"], default="duckdb")
+    parser.add_argument("question", nargs="?", help="question for the ask command")
     parser.add_argument(
         "--snowflake-ml", action="store_true", help="train SNOWFLAKE.ML.FORECAST (uses credits)"
     )
     args = parser.parse_args(argv)
 
+    if args.command == "eval":
+        from spend_desk.evaluation import main as run_eval_all
+
+        return run_eval_all()
+    if args.command in ("sync", "deploy"):
+        from spend_desk import deploy
+
+        if args.command == "sync":
+            deploy.sync()
+        else:
+            deploy.sync()
+            deploy.deploy()
+        return 0
+    if args.command == "agent-eval":
+        from spend_desk.agent.evaluate import run_eval
+
+        print(run_eval(args.target)["summary"])
+        return 0
+    if args.command == "ask":
+        from spend_desk.agent.agent import AnthropicAgent
+        from spend_desk.agent.tools import Tools
+        from spend_desk.config import load_config
+        from spend_desk.models import open_target
+
+        target = open_target(args.target)
+        r = AnthropicAgent(Tools(target, load_config())).run(args.question)
+        target.close()
+        print(r.text)
+        print()
+        print(f"[provenance {'passed' if r.passed else 'FAILED'}, {len(r.calls)} tool calls]")
+        return 0
     if args.command == "recommend":
         from spend_desk.recommend import main as run_recommend
 
